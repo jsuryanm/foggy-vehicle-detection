@@ -1,0 +1,31 @@
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+torch
+torchvision
+ultralytics
+opencv-python
+Pillow
+tensorboard
+pandas
+seaborn
+tqdm
+PyYAML
+numpy
+matplotlib
+fastapi
+uvicorn[standard]
+pydantic
+notebook
+streamlit
+gitpython
+psutil
+requests
+thop
+scipy
+notebook
+ipykernel
+ipython
+gdown 
+dill
+from-root
+-e .
