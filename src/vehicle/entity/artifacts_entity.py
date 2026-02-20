@@ -8,3 +8,14 @@ class DataIngestionArtifact:
 @dataclass
 class DataValidationArtifact:
     validation_status: bool
+
+@dataclass 
+class DataPreprocessingArtifact:
+    preprocessed_train_images_dir: str
+    preprocessed_train_labels_dir: str 
+    duplicated_count: int 
+    augmented_count: int
+
+@dataclass 
+class ModelTrainerArtifact:
+    trained_model_path: str

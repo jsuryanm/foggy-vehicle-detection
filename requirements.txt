@@ -28,4 +28,5 @@ ipython
 gdown 
 dill
 from-root
+albumentations
 -e .

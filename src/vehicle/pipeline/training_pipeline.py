@@ -5,18 +5,26 @@ from src.vehicle.logger.logger import logger
 from src.vehicle.exceptions.exception import VehicleException
 from src.vehicle.components.data_ingestion import DataIngestion
 from src.vehicle.components.data_validation import DataValidation
+from src.vehicle.components.data_preprocessing import DataPreprocessing
+from src.vehicle.components.model_trainer.trainer import ModelTrainer
 
 from src.vehicle.entity.config_entity import (DataIngestionConfig,
-                                              DataValidationConfig)
+                                              DataValidationConfig,
+                                              DataPreprocessingConfig,
+                                              ModelTrainerConfig)
+
 from src.vehicle.entity.artifacts_entity import (DataIngestionArtifact,
-                                                 DataValidationArtifact)
+                                                 DataValidationArtifact,
+                                                 DataPreprocessingArtifact,
+                                                 ModelTrainerArtifact)
 
 
 class TrainingPipeline:
     def __init__(self):
         self.data_ingestion_config = DataIngestionConfig()
         self.data_validation_config = DataValidationConfig()
-        
+        self.data_preprocessing_config = DataPreprocessingConfig()    
+        self.model_trainer_config = ModelTrainerConfig()
     
     def start_data_ingestion(self) -> DataIngestionArtifact:
         try:
@@ -45,10 +53,47 @@ class TrainingPipeline:
         except Exception as e:
             raise VehicleException(e,sys)
         
+    def start_data_preprocessing(self,
+                                 data_ingestion_artifact: DataIngestionArtifact) -> DataPreprocessingArtifact:
+        try:
+            logger.info("Initiated data preprocessing component from training pipeline")
+            data_preprocessing = DataPreprocessing(data_ingestion_artifact=data_ingestion_artifact,
+                                                   data_preprocessing_config=self.data_preprocessing_config)
+            
+            data_preprocessing_artifact = data_preprocessing.initiate_data_preprocessing()
+            logger.info("Completed data preprocessing component from training pipeline")
+            return data_preprocessing_artifact
+        except Exception as e:
+            raise VehicleException(e,sys)
+    
+    def start_model_trainer(self,
+                            data_ingestion_artifact: DataIngestionArtifact,
+                            data_validation_artifact: DataValidationArtifact) -> ModelTrainerArtifact:
+        try:
+            if not data_validation_artifact.validation_status:
+                raise Exception("Data validation failed. Cannot proceed with training.")
+
+            model_trainer = ModelTrainer(
+                data_ingestion_artifact=data_ingestion_artifact,
+                model_trainer_config=self.model_trainer_config
+            )
+            model_trainer_artifact = model_trainer.initiate_model_trainer()
+            logger.info("Exited model trainer component from training pipeline")
+            return model_trainer_artifact
+
+        except Exception as e:
+            raise VehicleException(e, sys)
+        
+        
     def run_pipeline(self) -> None:
         try: 
+            logger.info("Running all components from training pipeline")
             data_ingestion_artifact = self.start_data_ingestion()
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
+            data_preprocessing_artifact = self.start_data_preprocessing(data_ingestion_artifact=data_ingestion_artifact)
+            model_trainer_artifact = self.start_model_trainer(data_ingestion_artifact=data_ingestion_artifact,
+                                                              data_validation_artifact=data_validation_artifact)
+
         except Exception as e:
             raise VehicleException(e,sys)
         
