@@ -41,7 +41,7 @@ MODEL_TRAINER_CLS_LOSS: float = 0.5
 # ─────────────────────────────────────────────
 # Performance & Stability Settings
 # ─────────────────────────────────────────────
-MODEL_TRAINER_CACHE: str = "ram"
+MODEL_TRAINER_CACHE: str = "disk"
 MODEL_TRAINER_AMP: bool = True
 MODEL_TRAINER_COMPILE: bool = False              # Disabled: can cause issues on some CUDA versions
 MODEL_TRAINER_PRETRAINED: bool = True

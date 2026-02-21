@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil 
 
 import torch
 from ultralytics import YOLO
@@ -69,7 +70,10 @@ class ModelTrainer:
 
             model = YOLO(cfg.model_name)
             data_yaml = self._get_data_yaml_path()
-            os.makedirs(cfg.model_trainer_dir, exist_ok=True)
+
+            abs_model_trainer_dir = os.path.abspath(cfg.model_trainer_dir)
+            os.makedirs(abs_model_trainer_dir, exist_ok=True)
+            logger.info(f"YOLO output will be saved to: {abs_model_trainer_dir}/{cfg.run_name}")
 
             logger.info("Starting YOLO26 model training...")
             model.train(
@@ -119,29 +123,31 @@ class ModelTrainer:
                 patience=cfg.patience,
 
                 # Output
-                project=cfg.model_trainer_dir,
+                project=abs_model_trainer_dir,
                 name=cfg.run_name,
                 exist_ok=cfg.exist_ok,
             )
 
             logger.info("YOLO26 training completed successfully")
 
-            best_model_path = os.path.join(
-                cfg.model_trainer_dir,
-                cfg.run_name,
-                "weights",
-                cfg.trained_model_file_path
-            )
+            yolo_best_path = str(model.trainer.best)
+            logger.info(f"YOLO saved best.pt at: {yolo_best_path}")
 
-            if not os.path.exists(best_model_path):
+            if not os.path.exists(yolo_best_path):
                 raise FileNotFoundError(
-                    f"Trained model not found at: {best_model_path}\n"
+                    f"Trained model not found at: {yolo_best_path}\n"
                     "Training may have failed or been interrupted."
                 )
 
-            logger.info(f"Best model weights saved at: {best_model_path}")
-            return best_model_path
+            # Copy best.pt to canonical artifacts location
+            canonical_weights_dir = os.path.join(abs_model_trainer_dir, "weights")
+            os.makedirs(canonical_weights_dir, exist_ok=True)
 
+            canonical_best_path = os.path.join(canonical_weights_dir, cfg.trained_model_file_path)
+            shutil.copy2(yolo_best_path, canonical_best_path)
+
+            logger.info(f"Copied best.pt to canonical path: {canonical_best_path}")
+            return canonical_best_path
         except Exception as e:
             raise VehicleException(e, sys)
 
