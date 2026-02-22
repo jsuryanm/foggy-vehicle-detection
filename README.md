@@ -1,4 +1,4 @@
-# 🚗 Foggy Vehicle Detection System
+# Fog Vehicle Detection System
 
 A vehicle detection system built with **YOLOv26** that reliably detects vehicles in **foggy and low-visibility** environments.
 
