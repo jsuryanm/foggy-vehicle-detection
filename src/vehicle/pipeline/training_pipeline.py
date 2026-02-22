@@ -7,16 +7,19 @@ from src.vehicle.components.data_ingestion import DataIngestion
 from src.vehicle.components.data_validation import DataValidation
 from src.vehicle.components.data_preprocessing import DataPreprocessing
 from src.vehicle.components.model_trainer.trainer import ModelTrainer
+from src.vehicle.components.model_evaluation import ModelEvaluation
 
 from src.vehicle.entity.config_entity import (DataIngestionConfig,
                                               DataValidationConfig,
                                               DataPreprocessingConfig,
-                                              ModelTrainerConfig)
+                                              ModelTrainerConfig,
+                                              ModelEvaluationConfig)
 
 from src.vehicle.entity.artifacts_entity import (DataIngestionArtifact,
                                                  DataValidationArtifact,
                                                  DataPreprocessingArtifact,
-                                                 ModelTrainerArtifact)
+                                                 ModelTrainerArtifact,
+                                                 ModelEvaluationArtifact)
 
 
 class TrainingPipeline:
@@ -25,6 +28,7 @@ class TrainingPipeline:
         self.data_validation_config = DataValidationConfig()
         self.data_preprocessing_config = DataPreprocessingConfig()    
         self.model_trainer_config = ModelTrainerConfig()
+        self.model_eval_config = ModelEvaluationConfig()
     
     def start_data_ingestion(self) -> DataIngestionArtifact:
         try:
@@ -83,6 +87,23 @@ class TrainingPipeline:
 
         except Exception as e:
             raise VehicleException(e, sys)
+    
+    def start_model_eval(self,
+                         data_ingestion_artifact: DataIngestionArtifact,
+                         model_trainer_artifact: ModelTrainerArtifact) -> ModelEvaluationArtifact:
+        try:
+            logger.info("Initiated model evaluation component from training pipeline")
+
+            model_eval = ModelEvaluation(model_trainer_artifact=model_trainer_artifact,
+                                         data_ingestion_artifact=data_ingestion_artifact,
+                                         model_evaluation_config=ModelEvaluationConfig())
+            
+            model_eval_artifact = model_eval.initiate_model_evaluation()
+            logger.info("Completed model evaluation component from training pipeline")
+            return model_eval_artifact
+
+        except Exception as e:
+            raise VehicleException(e, sys)
         
         
     def run_pipeline(self) -> None:
@@ -93,6 +114,8 @@ class TrainingPipeline:
             data_preprocessing_artifact = self.start_data_preprocessing(data_ingestion_artifact=data_ingestion_artifact)
             model_trainer_artifact = self.start_model_trainer(data_ingestion_artifact=data_ingestion_artifact,
                                                               data_validation_artifact=data_validation_artifact)
+            model_eval_artifact = self.start_model_eval(data_ingestion_artifact=data_ingestion_artifact,
+                                                        model_trainer_artifact=model_trainer_artifact)
 
         except Exception as e:
             raise VehicleException(e,sys)

@@ -315,25 +315,43 @@ class DataPreprocessing:
 
         except Exception as e:
             raise VehicleException(e, sys)
+
+    def _is_artifact_available(self) -> bool:
+        images_dir = self.data_preprocessing_config.preprocessed_train_images_dir
+        if os.path.exists(images_dir) and len(os.listdir(images_dir)) > 0:
+            logger.info("Preprocessed data already exists — skipping preprocessing.")
+            return True
+        return False
         
     def initiate_data_preprocessing(self) -> DataPreprocessingArtifact:
         logger.info("Initiating data preprocessing")
         try:
+            out_images_dir = self.data_preprocessing_config.preprocessed_train_images_dir
+            out_labels_dir = self.data_preprocessing_config.preprocessed_train_labels_dir
+
+            if os.path.exists(out_images_dir) and len(os.listdir(out_images_dir)) > 0:
+                logger.info(f"Preprocessed data already exists at: {out_images_dir} — skipping preprocessing.")
+                return DataPreprocessingArtifact(
+                    preprocessed_train_images_dir=out_images_dir,
+                    preprocessed_train_labels_dir=out_labels_dir,
+                    duplicated_count=0,
+                    augmented_count=0,
+                )
+
+            logger.info("No preprocessed data found — proceeding with data preprocessing.")
             self._copy_train_split()
             self._update_data_yaml()
             duplicated_count = self.oversample_minority_classes()
             augmented_count = self.apply_augmentations()
 
-            data_preprocessing_artifact = DataPreprocessingArtifact(
-                preprocessed_train_images_dir=self.out_images_dir,
-                preprocessed_train_labels_dir=self.out_labels_dir,
+            artifact = DataPreprocessingArtifact(
+                preprocessed_train_images_dir=out_images_dir,
+                preprocessed_train_labels_dir=out_labels_dir,
                 duplicated_count=duplicated_count,
-                augmented_count=augmented_count
+                augmented_count=augmented_count,
             )
-
-            logger.info("Data preprocessing completed")
-            logger.info(f"Data preprocessing artifact: {data_preprocessing_artifact}")
-            return data_preprocessing_artifact
+            logger.info(f"Data preprocessing artifact: {artifact}")
+            return artifact
 
         except Exception as e:
             raise VehicleException(e, sys)

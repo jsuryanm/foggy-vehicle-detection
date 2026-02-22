@@ -51,11 +51,16 @@ class DataValidation:
     def initiate_data_validation(self) -> DataValidationArtifact:
         logger.info("Initiated data validation")
         try:
+            if os.path.exists(self.data_validation_config.valid_status_file_dir):
+                logger.info(f"Validation status file already exists at: {self.data_validation_config.valid_status_file_dir} — skipping validation.")
+                with open(self.data_validation_config.valid_status_file_dir, "r") as f:
+                    content = f.read()
+                status = "True" in content
+                return DataValidationArtifact(validation_status=status)
+
+            logger.info("No validation status file found — proceeding with data validation.")
             status = self.validate_all_files()
-            data_validation_artifact = DataValidationArtifact(validation_status=status)
-            logger.info(f"Data validation artifact:{data_validation_artifact}")
-            return data_validation_artifact
+            return DataValidationArtifact(validation_status=status)
 
         except Exception as e:
-            raise VehicleException(e,sys)
-
+            raise VehicleException(e, sys)

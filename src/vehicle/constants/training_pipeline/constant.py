@@ -35,10 +35,3 @@ MODEL_DEFAULT_EPOCHS: int = 150
 MODEL_DEFAULT_BATCH_SIZE: int = 64
 MODEL_DEFAULT_IMAGE_SIZE: int = 640
 
-# ─────────────────────────────────────────────
-# Model Evaluation Constants
-# ─────────────────────────────────────────────
-EVALUATION_CONF_DEFAULT: float = 0.001
-EVALUATION_IOU_DEFAULT: float = 0.6
-EVALUATION_IOU_SWEEP: list = [0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
-EVALUATION_CONF_SWEEP: list = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5]

@@ -209,5 +209,9 @@ __marimo__/
 data
 logs
 logs/*
+
 artifacts
 artifacts/*
+
+runs
+runs/*

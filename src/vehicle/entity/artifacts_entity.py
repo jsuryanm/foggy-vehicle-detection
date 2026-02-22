@@ -19,3 +19,16 @@ class DataPreprocessingArtifact:
 @dataclass 
 class ModelTrainerArtifact:
     trained_model_path: str
+
+@dataclass
+class ModelEvaluationArtifact:
+    best_iou_threshold: float
+    best_conf_threshold: float
+    best_f1_score: float
+    standard_map50: float
+    standard_map50_95: float
+    tta_map50: float
+    tta_map50_95: float
+    final_map50: float
+    final_map50_95: float
+    evaluation_report_path: str  # path to saved CSV/JSON summary

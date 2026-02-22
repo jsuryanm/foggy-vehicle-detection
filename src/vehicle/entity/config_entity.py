@@ -3,6 +3,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from src.vehicle.constants.training_pipeline.constant import * 
 from src.vehicle.constants.training_pipeline.model_trainer_constants import *
+from src.vehicle.constants.training_pipeline.model_eval_constants import *
 
 @dataclass 
 class TrainingPipelineConfig:
@@ -107,3 +108,26 @@ class ModelTrainerConfig:
     # Output
     run_name: str = MODEL_TRAINER_RUN_NAME
     exist_ok: bool = MODEL_TRAINER_EXIST_OK
+
+
+@dataclass
+class ModelEvaluationConfig:
+    model_evaluation_dir: str = os.path.join(
+        training_pipeline_config.artifacts_dir,
+        EVALUATION_DIR_NAME
+    )
+    evaluation_report_path: str = os.path.join(model_evaluation_dir, EVALUATION_REPORT_FILE)
+    plots_dir: str = os.path.join(model_evaluation_dir, EVALUATION_PLOTS_DIR)
+
+    conf_default: float = EVALUATION_CONF_DEFAULT
+    iou_default: float = EVALUATION_IOU_DEFAULT
+    iou_sweep: list = None          # set in __post_init__
+    conf_sweep: list = None
+
+    split: str = EVALUATION_SPLIT
+
+    def __post_init__(self):
+        if self.iou_sweep is None:
+            self.iou_sweep = EVALUATION_IOU_SWEEP
+        if self.conf_sweep is None:
+            self.conf_sweep = EVALUATION_CONF_SWEEP

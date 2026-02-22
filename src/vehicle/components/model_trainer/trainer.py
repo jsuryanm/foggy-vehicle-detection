@@ -150,15 +150,28 @@ class ModelTrainer:
             return canonical_best_path
         except Exception as e:
             raise VehicleException(e, sys)
+    
+    def _get_canonical_model_path(self) -> str:
+        cfg = self.model_trainer_config
+        abs_model_trainer_dir = os.path.abspath(cfg.model_trainer_dir)
+        return os.path.join(abs_model_trainer_dir, "weights", cfg.trained_model_file_path)
+
 
     def initiate_model_trainer(self) -> ModelTrainerArtifact:
         logger.info("Initiating model trainer component")
         try:
-            trained_model_path = self.train()
-            model_trainer_artifact = ModelTrainerArtifact(trained_model_path=trained_model_path)
+            canonical_model_path = self._get_canonical_model_path()
 
-            logger.info(f"Model trainer artifact: {model_trainer_artifact}")
-            return model_trainer_artifact
+            if os.path.exists(canonical_model_path):
+                logger.info(f"Trained model already exists at: {canonical_model_path} — skipping training.")
+                return ModelTrainerArtifact(trained_model_path=canonical_model_path)
+
+            logger.info("No existing model found — proceeding with training.")
+            trained_model_path = self.train()
+
+            artifact = ModelTrainerArtifact(trained_model_path=trained_model_path)
+            logger.info(f"Model trainer artifact: {artifact}")
+            return artifact
 
         except Exception as e:
             raise VehicleException(e, sys)
