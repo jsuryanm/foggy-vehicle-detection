@@ -28,5 +28,6 @@ ipython
 gdown 
 dill
 from-root
-albumentations
+python-multipart
+python-dotenv
 -e .
