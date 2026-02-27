@@ -1,9 +1,7 @@
-# ─────────────────────────────────────────────
 # Model Evaluation Constants
-# ─────────────────────────────────────────────
 
 # Default thresholds (for initial standard/TTA eval)
-EVALUATION_CONF_DEFAULT: float = 0.001     # low conf → let NMS filter
+EVALUATION_CONF_DEFAULT: float = 0.001     
 EVALUATION_IOU_DEFAULT: float = 0.6
 
 # IoU sweep range for NMS tuning

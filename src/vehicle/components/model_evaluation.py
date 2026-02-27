@@ -17,17 +17,6 @@ from src.vehicle.entity.artifacts_entity import (ModelTrainerArtifact,
 
 
 class ModelEvaluation:
-    """
-    End-to-end model evaluation for YOLO26 foggy vehicle detection.
-
-    Pipeline (mirrors notebook):
-      1. Standard vs TTA comparison
-      2. IoU threshold sweep  → best NMS IoU via mAP50-95
-      3. Conf threshold sweep → best conf via F1 score
-      4. Final per-class evaluation on test set (best IoU + best conf + TTA)
-      5. Save plots + JSON report
-    """
-
     def __init__(
         self,
         model_trainer_artifact: ModelTrainerArtifact,
@@ -50,9 +39,6 @@ class ModelEvaluation:
         except Exception as e:
             raise VehicleException(e, sys)
 
-    # ──────────────────────────────────────────────────────────
-    # Step 1: Standard vs TTA
-    # ──────────────────────────────────────────────────────────
     def _run_standard_vs_tta(self) -> tuple[dict, dict]:
         """Compare standard inference vs Test Time Augmentation."""
         logger.info("Running standard evaluation...")
@@ -103,9 +89,6 @@ class ModelEvaluation:
             print(f"{key:<20} {standard[key]:>12.4f} {tta[key]:>12.4f}")
         print(f"{'─'*46}\n")
 
-    # ──────────────────────────────────────────────────────────
-    # Step 2: IoU Threshold Sweep
-    # ──────────────────────────────────────────────────────────
     def _run_iou_sweep(self) -> dict:
         """Sweep NMS IoU thresholds and return best by mAP50-95."""
         logger.info(f"Sweeping IoU thresholds: {self.cfg.iou_sweep}")
@@ -166,9 +149,6 @@ class ModelEvaluation:
         plt.close()
         logger.info(f"IoU sweep plot saved: {save_path}")
 
-    # ──────────────────────────────────────────────────────────
-    # Step 3: Confidence Threshold Sweep
-    # ──────────────────────────────────────────────────────────
     def _run_conf_sweep(self, best_iou: float) -> dict:
         """Sweep confidence thresholds and return best by F1 score."""
         logger.info(f"Sweeping confidence thresholds: {self.cfg.conf_sweep}")
@@ -233,9 +213,6 @@ class ModelEvaluation:
         plt.close()
         logger.info(f"Confidence sweep plot saved: {save_path}")
 
-    # ──────────────────────────────────────────────────────────
-    # Step 4: Final Per-Class Evaluation
-    # ──────────────────────────────────────────────────────────
     def _run_final_evaluation(self, best_iou: float, best_conf: float) -> dict:
         """Run final evaluation on test set with best thresholds + TTA."""
         logger.info("Running final per-class evaluation (TTA + best thresholds)...")
@@ -311,17 +288,12 @@ class ModelEvaluation:
         plt.close()
         logger.info(f"Per-class AP plot saved: {save_path}")
 
-    # ──────────────────────────────────────────────────────────
-    # Step 5: Save Report
-    # ──────────────────────────────────────────────────────────
     def _save_report(self, report: dict):
         with open(self.cfg.evaluation_report_path, "w") as f:
             json.dump(report, f, indent=4)
         logger.info(f"Evaluation report saved: {self.cfg.evaluation_report_path}")
 
-    # ──────────────────────────────────────────────────────────
-    # Main Entry Point
-    # ──────────────────────────────────────────────────────────
+
     def initiate_model_evaluation(self) -> ModelEvaluationArtifact:
         logger.info("Initiating model evaluation component")
         try:

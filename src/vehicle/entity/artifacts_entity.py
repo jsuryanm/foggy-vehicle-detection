@@ -31,4 +31,4 @@ class ModelEvaluationArtifact:
     tta_map50_95: float
     final_map50: float
     final_map50_95: float
-    evaluation_report_path: str  # path to saved CSV/JSON summary
+    evaluation_report_path: str  

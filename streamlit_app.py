@@ -20,9 +20,7 @@ uploaded_file = st.file_uploader(
     type=["jpg", "jpeg", "png", "mp4"]
 )
 
-# ─────────────────────────────────────────────
 # IMAGE FLOW
-# ─────────────────────────────────────────────
 if uploaded_file and input_type == "Image":
 
     if uploaded_file.type.startswith("image"):
@@ -57,9 +55,7 @@ if uploaded_file and input_type == "Image":
         st.warning("Please upload an image file for Image mode.")
 
 
-# ─────────────────────────────────────────────
 # VIDEO FLOW
-# ─────────────────────────────────────────────
 if uploaded_file and input_type == "Video":
 
     if uploaded_file.type.startswith("video"):

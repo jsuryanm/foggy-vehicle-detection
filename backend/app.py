@@ -13,9 +13,6 @@ from src.vehicle.components.inference import VehicleDetector
 from src.vehicle.entity.config_entity import ModelTrainerConfig
 
 
-# ─────────────────────────────────────────────
-# Load Model Once (App Startup)
-# ─────────────────────────────────────────────
 cfg = ModelTrainerConfig()
 
 MODEL_PATH = os.path.abspath(
@@ -40,15 +37,11 @@ app = FastAPI(title="Fog Vehicle Detection API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # restrict in production
+    allow_origins=["*"],   
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# ─────────────────────────────────────────────
-# Health Check
-# ─────────────────────────────────────────────
 @app.get("/")
 def health():
     return {"status": "API running. model is not loaded yet)"}
@@ -80,9 +73,6 @@ async def predict_image(
     })
 
 
-# ─────────────────────────────────────────────
-# Video Endpoint
-# ─────────────────────────────────────────────
 @app.post("/predict/video")
 async def predict_video(
     file: UploadFile = File(...),

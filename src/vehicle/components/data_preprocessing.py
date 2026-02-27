@@ -142,10 +142,10 @@ class DataPreprocessing:
             for label_file in os.listdir(self.out_labels_dir):
                 label_path = os.path.join(self.out_labels_dir, label_file)
                 with open(label_path, "r") as f:
-                    lines = [l for l in f.readlines() if l.strip()]  # ← skip empty lines
+                    lines = [l for l in f.readlines() if l.strip()]  # skip empty lines
 
                 contains_minority = any(
-                    int(float(line.split()[0])) in minority_classes  # ← fix: float() first
+                    int(float(line.split()[0])) in minority_classes  #  fix: float() first
                     for line in lines
                 )
 

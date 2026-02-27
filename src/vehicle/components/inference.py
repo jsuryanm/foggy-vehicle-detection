@@ -58,9 +58,7 @@ class VehicleDetector:
         counts = dict(sorted(counts.items(), key=lambda x: x[1], reverse=True))
         return annotated, counts, inference_time
 
-    # ─────────────────────────────────────────────
-    # FFMPEG PATH RESOLVER — NO HARDCODING
-    # ─────────────────────────────────────────────
+
     @staticmethod
     def _get_ffmpeg_path() -> str:
         """
@@ -76,27 +74,23 @@ class VehicleDetector:
           FFMPEG_PATH=C:\\path\\to\\ffmpeg.exe
         """
 
-        # 1. ✅ Read from .env / environment variable — no hardcoding needed
         env_path = os.environ.get("FFMPEG_PATH")
         if env_path:
             if os.path.isfile(env_path):
                 print(f"[ffmpeg] Found via FFMPEG_PATH env: {env_path}")
                 return env_path
             else:
-                # Warn if env var is set but path is wrong
                 raise RuntimeError(
                     f"FFMPEG_PATH is set in .env but file not found:\n"
                     f"  FFMPEG_PATH={env_path}\n"
                     f"Please check the path in your .env file."
                 )
 
-        # 2. ✅ Try system PATH
         ffmpeg = shutil.which("ffmpeg")
         if ffmpeg:
             print(f"[ffmpeg] Found via system PATH: {ffmpeg}")
             return ffmpeg
 
-        # 3. ❌ Nothing found — give clear instructions
         raise RuntimeError(
             "\n"
             "ffmpeg not found. Choose one of these fixes:\n\n"
@@ -110,10 +104,7 @@ class VehicleDetector:
             "    (This auto-adds ffmpeg to PATH)\n"
         )
 
-    # ─────────────────────────────────────────────
-    # VIDEO FILE INFERENCE
-    # ─────────────────────────────────────────────
-    def predict_video(self, input_path: str, output_path: str, conf=0.15, iou=0.5):
+    def predict_video(self, input_path: str, output_path: str, conf=0.10, iou=0.45):
         """
         conf=0.15 — foggy videos have lower confidence scores.
         iou=0.5   — reduces over-suppression of overlapping vehicles.
@@ -141,10 +132,8 @@ class VehicleDetector:
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(raw_output, fourcc, fps, (width, height))
 
-        # ✅ Primary counter — unique tracked vehicles
         seen_track_ids: dict[int, str] = {}
 
-        # ✅ Debug counters
         raw_detections_per_class: dict[str, int] = {}
         frames_with_no_ids = 0
         frame_count = 0
@@ -173,7 +162,6 @@ class VehicleDetector:
             if result.boxes is None:
                 continue
 
-            # ✅ Always count raw detections for debug visibility
             if result.boxes.cls is not None:
                 classes = result.boxes.cls.cpu().numpy().astype(int)
                 for cls_id in classes:
@@ -183,30 +171,25 @@ class VehicleDetector:
                     )
 
             if result.boxes.id is not None:
-                # ✅ Normal path — tracking IDs available
                 ids = result.boxes.id.cpu().numpy().astype(int)
                 classes = result.boxes.cls.cpu().numpy().astype(int)
 
                 for track_id, cls_id in zip(ids, classes):
                     class_name = self.class_names[cls_id]
-                    # ✅ First-seen only — prevents bus/truck overwritten by car
                     if track_id not in seen_track_ids:
                         seen_track_ids[track_id] = class_name
 
             else:
-                # ✅ Fallback — tracker dropped IDs (occlusion, fog, fast motion)
                 frames_with_no_ids += 1
                 classes = result.boxes.cls.cpu().numpy().astype(int)
                 for i, cls_id in enumerate(classes):
                     class_name = self.class_names[cls_id]
-                    # Negative fake ID avoids collision with real track IDs
                     fake_id = -(frame_count * 1000 + i)
                     seen_track_ids[fake_id] = class_name
 
         cap.release()
         out.release()
 
-        # ✅ Build final unique vehicle counts
         final_counts: dict[str, int] = {}
         for class_name in seen_track_ids.values():
             final_counts[class_name] = final_counts.get(class_name, 0) + 1
@@ -215,7 +198,6 @@ class VehicleDetector:
             sorted(final_counts.items(), key=lambda x: x[1], reverse=True)
         )
 
-        # ✅ Debug report in uvicorn console
         print("\n" + "=" * 55)
         print("VIDEO DETECTION DEBUG REPORT")
         print("=" * 55)
@@ -232,9 +214,6 @@ class VehicleDetector:
             print(f"    {cls:<20}: {cnt:>6} vehicles")
         print("=" * 55 + "\n")
 
-        # ─────────────────────────────────────────────
-        # ffmpeg: re-encode to browser-compatible mp4
-        # ─────────────────────────────────────────────
         ffmpeg_path = self._get_ffmpeg_path()
 
         subprocess.run([
